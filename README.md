@@ -81,10 +81,10 @@ So a trivial demonstration program might help.
 
 ---
 
-#include <constants.rh>
-#include <crctools.rh>
-#include <math.rh>
-#include <util.rh>
+    #include <constants.rh>
+    #include <crctools.rh>
+    #include <math.rh>
+    #include <util.rh>
     ; vim: syntax=fasm
 
 
