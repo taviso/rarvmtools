@@ -12,6 +12,8 @@ Currently two basic tools are available for experimentation, a linker and an
 assembler. A dissassembler will be available soon, and perhaps eventually a
 compiler (in the form of a llvm backend or gcc target).
 
+A related blog post is available here http://blog.cmpxchg8b.com/2012/09/fun-with-constrained-programming.html
+
 Usage
 ===============================================================================
 
@@ -186,6 +188,8 @@ This is a list of what currently is believed to work:
     * Basic programs appear to run on the Linux unrar program.
     * I havn't tested Windows yet, because I'm still porting the CRC tools to RarVM.
 
+Needless to say, don't pipe untrusted input into this early alpha build ;-)
+
 FAQ
 ===============================================================================
 
@@ -205,30 +209,38 @@ A. Yes, but the answer is complicated.
    expect? The ridiculous constraints are what makes it interesting ;-)
 
 Q. Can I supply input to my program?
+
 A. All input must be included in the archive, there is no way to provide
    external input at runtime.
 
 Q. Can I write self-modifying Code?
+
 A. I don't think so, you can think of the code as occupying a different x86
    segment from your data, so is not addressable. So, in x86 terms, you might
    say ds = ss, but cs != ds.
 
 Q. Can I embed data within code?
+
 A. You could, using opaque predicates, but as you cannot read from the code
    segment, I don't think it would be useful.
 
 Q. How do I force the use of smaller integer encodings to save space?
+
 A. You send me a patch to do that.
 
 Q. How do I set the "Init Registers" option rar supports?
+
 A. You send me a patch to do that.
 
 Q. How do I add data to the "InitData"?
+
 A. You send me a patch to do that.
 
 Q. Whats the deal with the different branch types?
+
 A. I'll add support when I can.
 
 Q. What does "print" do?
+
 A. I have no idea! Does it do something on Windows? (please test and report)
 
