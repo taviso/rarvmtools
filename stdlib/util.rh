@@ -1,0 +1,44 @@
+#ifndef __UTIL_RH
+#define __UTIL_RH
+
+; vim: syntax=fasm
+
+#include <constants.rh>
+
+; Returns the specified 32-bit value byteswapped.
+_bswap:
+        ; [r6+#8]   value
+        ; [r6+#4]   r
+        ; [r6+#0]   s
+        push    r6
+        mov     r6, r7
+        xor     r0, r0
+        mov     r1, [r6+#8]
+        shr     r1, #24
+        and     r1, #0x000000FF
+        or      r0, r1
+        mov     r1, [r6+#8]
+        shr     r1, #8
+        and     r1, #0x0000FF00
+        or      r0, r1
+        mov     r1, [r6+#8]
+        shl     r1, #8
+        and     r1, #0x00FF0000
+        or      r0, r1
+        mov     r1, [r6+#8]
+        shl     r1, #24
+        and     r1, #0xFF000000
+        or      r0, r1
+        mov     r7, r6
+        pop     r6
+        ret
+
+; Terminate program with success.
+_success:
+        jmp     VM_MEMSIZE
+
+; Terminate program with error.
+_error:
+        jmp     $_error
+
+#endif

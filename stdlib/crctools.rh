@@ -1,0 +1,188 @@
+#ifndef __CRCTOOLS_RH
+#define __CRCTOOLS_RH
+
+; vim: syntax=fasm
+;
+; CRC32 routines for RarVM standard library.
+; Copyright (C) 2012 Tavis Ormandy <taviso@cmpxchg8b.com>
+;
+; This program is free software; you can redistribute it and/or modify
+; it under the terms of the GNU General Public License as published by
+; the Free Software Foundation; either version 2 of the License, or
+; (at your option) any later version.
+;
+
+#include <constants.rh>
+#include <util.rh>
+#include <math.rh>
+
+; Returns the CRC-32 of the block specified in the NEWBLOCK record. Translated
+; to RAR from a public domain x86/DOS implementation.
+_crc_block:
+        ; [r6+#12]  length
+        ; [r6+#8]   buffer
+        ; [r6+#4]   r
+        ; [r6+#0]   s
+        push    r6                          ; save frame pointer
+        mov     r6, r7                      ; create new frame
+        mov     r3, #0xFFFFFFFF             ; Running CRC value
+        mov     r1, [r6+#8]                 ; Input pointer
+        mov     r5, [r6+#12]                ; Available input
+__crc_input:
+        mov     r0, [r1]                    ; Fetch a byte from input
+        and     r0, #0xFF                   ; Mask out required bits
+        xor     r3, r0                      ; Xor onto running CRC
+        mov     r4, #8                      ; Record bits to process.
+__crc_bits:
+        shr     r3, #1                      ; Next bit
+        jae     $__crc_clear                ; Finished bits
+        xor     r3, #0xEDB88320             ; CRC-32 polynomial
+__crc_clear:
+        dec     r4                          ; Are there bits left?
+        jnz     $__crc_bits
+        inc     r1                          ; Next input byte
+        dec     r5                          ; Bytes available
+        jnz     $__crc_input                ; Fetch
+__crc_finished:
+        mov     r0, r3                      ; Finished
+        mov     r7, r6                      ; clear frame
+        pop     r6
+        ret
+
+; Returns the specified 32-bit value with the bits in each byte reversed.
+; Alogrithm stolen from HAKMEM.
+_invert_bit_order:
+        ; [r6+#8]   input
+        ; [r6+#4]   r
+        ; [r6+#0]   s
+        push    r6                          ; save frame pointer
+        mov     r6, r7                      ; create new frame
+        xor     r0, r0                      ; running value
+        mov     r1, [r6+#8]                 ; Load input dword
+        xor     r2, r2                      ; Current byte
+__invert_bit_order_next:
+        mov     r3, r1
+        shr     r3, r2                      ; shift current byte into low order
+        and     r3, #0xFF                   ; mask out bits
+        mov     r4, r3                      ; r4 = r3 = byte to invert
+        mul     r3, #0x0802
+        mul     r4, #0x8020
+        and     r3, #0x22110
+        and     r4, #0x88440
+        or      r3, r4
+        mul     r3, #0x10101
+        shr     r3, #16
+        and     r3, #0xFF
+        shl     r3, r2
+        or      r0, r3                      ; or byte into position
+        add     r2, #8                      ; next byte
+        cmp     r2, #32
+        jnz     $__invert_bit_order_next
+        mov     r7, r6                      ; clear frame
+        pop     r6
+        ret
+
+; This is a helper function for _compensate_crc.
+_find_vector_x:
+        ; [r6+#12]  row
+        ; [r6+#8]   target
+        ; [r6+#4]   r
+        ; [r6+#0]   s
+        push    r6                          ; save frame pointer
+        mov     r6, r7                      ; create new frame
+        push    [r6+#8]                     ; target
+        call    $_invert_bit_order
+        push    r0
+        call    $_bswap
+        mov     [r6+#8], r0                 ; invert target byte and bit order.
+__find_vector_x_row:
+        test    [r6+#12], [r6+#12]
+        js      $__find_vector_x_finish
+        dec     [r6+#12]                     ; row--;
+        push    [r6+#8]
+        call    $_find_matching_vector
+        mov     [r6+#8], r0                 ; A = find_matching_vector(A);
+        jmp     $__find_vector_x_row
+__find_vector_x_finish:
+        push    [r6+#8]
+        call    $_invert_bit_order          ; restore bit order
+        mov     r7, r6                      ; clear frame
+        pop     r6
+        ret
+
+; This is a helper function for _compensate_crc.
+_find_matching_vector:
+        ; [r6+#8]   input
+        ; [r6+#4]   r
+        ; [r6+#0]   s
+        ; [r6-#4]   result
+        ; [r6-#8]   mesh
+        ; [r6-#12]  mesl
+        ; [r6-#16]  i
+        push    r6                          ; save frame pointer
+        mov     r6, r7                      ; create new frame
+        sub     r7, #16                     ; allocate variables
+        mov     [r6-#4], #0                 ; result
+        mov     [r6-#8], #1                 ; mesh
+        mov     [r6-#12], #0x04C11DB7       ; polynomial
+        mov     [r6-#16], #1                ; i
+__find_matching_vector_loop:
+        test    [r6+#8], [r6-#16]           ; input & i
+        jz      $__find_matching_vector_shift
+        xor     [r6-#4], [r6-#8]            ; result ^= mesh
+        xor     [r6+#8], [r6-#12]           ; input  ^= mesl
+__find_matching_vector_shift:
+        mov     r1, [r6-#8]                 ; mesh (A)
+        mov     r2, [r6-#12]                ; mesl (B)
+        shl     r1, #1                      ; A << 1
+        shr     r2, #31                     ; B >> (32 - 1)
+        add     r1, r2
+        mov     [r6-#8], r1                 ; *A = (*A << count) + (*B >> (32 - count));
+        shl     [r6-#12], #1                ; *B = (*B << count);
+        shl     [r6-#16], #1                ; Next bit.
+        jnz     $__find_matching_vector_loop
+        mov     r0, [r6-#4]                 ; return result
+        mov     r7, r6                      ; clear frame
+        pop     r6
+        ret
+
+; Modifies a few bytes within the first 7 bytes of buffer to force the CRC32 to
+; match the requested value. You should reserve the first few bytes of buffer
+; for this process.
+;
+; Original implementation based on a paper by Julien Tinnes.
+_compensate_crc:
+        ; [r6+#16]  target     // Desired CRC value.
+        ; [r6+#12]  length     // Size of buffer.
+        ; [r6+#8]   buffer     // Pointer to buffer to compensate.
+        ; [r6+#4]   r
+        ; [r6+#0]   s
+        ; [r6-#4]   modlen     // Length % 4
+        push    r6                          ; save frame pointer
+        mov     r6, r7                      ; create new frame
+        sub     r7, #4                      ; allocate variables
+        push    [r6+#12]                    ; length
+        push    [r6+#8]                     ; buffer
+        call    $_crc_block                 ; _crc_block(buffer, length)
+        xor     [r6+#16], r0                ; target ^= currentcrc
+        push    #4                          ; divisor
+        push    [r6+#12]                    ; length
+        call    $_mod                       ; _mod(length, 4)
+        mov     [r6-#4], r0                 ; save this calculation, as its required later
+        sub     [r6+#12], [r6-#4]           ; length -= modlen
+        div     [r6+#12], #4                ; divide by 4
+        sub     [r6+#12], #1                ; calculate row for _find_vector_x
+        push    [r6+#12]                    ; row
+        push    [r6+#16]                    ; target
+        call    $_find_vector_x             ; _find_vector_x(target, row)
+        push    r0                          ; value
+        call    $_bswap                     ; byte swap result
+        add     [r6+#8], [r6-#4]            ; calculate offset to modify
+        mov     r1, [r6+#8]                 ; load address
+        xor     [r1], r0                    ; compensate crc
+        xor     r0, r0                      ; return code
+        mov     r7, r6                      ; clear frame
+        pop     r6
+        ret
+
+#endif

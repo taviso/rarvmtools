@@ -1,0 +1,43 @@
+#ifndef __MATH_RH
+#define __MATH_RH
+
+; vim: syntax=fasm
+
+; There is no mod operation in rar, so I will do it in software.
+_mod:
+        ; [r6+#12]  divisor
+        ; [r6+#8]   dividend
+        ; [r6+#4]   r
+        ; [r6+#0]   s
+        push    r6                          ; save frame pointer
+        mov     r6, r7                      ; create new frame
+        mov     r0, [r6+#8]                 ; a
+        mov     r1, [r6+#8]                 ; a
+        mov     r2, [r6+#12]                ; b
+        div     r1, r2                      ; a / b
+        mul     r1, r2                      ; a * (a / b)
+        sub     r0, r1                      ; a - (a * (a / b))
+        mov     r7, r6                      ; clear frame
+        pop     r6
+        ret
+
+_fib:
+        ; [r6+#8]   n
+        ; [r6+#4]   r
+        ; [r6+#0]   s
+        push    r6                          ; save frame pointer
+        mov     r6, r7                      ; create new frame
+        mov     r1, #1
+        mov     r2, #0
+        jmp     $__fib_next
+__fib_add:
+        add     r0, r1
+        neg     r1
+        add     r1, r0
+__fib_next:
+        dec     [r6+#8]
+        jns     $__fib_add
+        pop     r6
+        ret
+
+#endif

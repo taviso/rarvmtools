@@ -1,0 +1,25 @@
+#ifndef __CONSTANTS_RH
+#define __CONSTANTS_RH
+
+; vim: syntax=fasm
+
+; Flag Constants
+#define VM_FC                       #0x00000001
+#define VM_FZ                       #0x00000002
+#define VM_FS                       #0x80000000
+
+; Machine Parameters
+#define VM_MEMSIZE                  #0x00040000
+#define VM_GLOBALMEMADDR            #0x0003C000
+#define VM_GLOBALMEMSIZE            #0x00002000
+#define VM_FIXEDGLOBALSIZE          #64
+
+; Magic Pokes
+#define VMADDR_NEWBLOCKPOS          #0x0003C020
+#define VMADDR_NEWBLOCKSIZE         #0x0003C01C
+#define VMADDR_DATASIZE             #0x0003C030
+
+; File Parameters
+#define RAR_FILECRC                 #0xDEADBEEF
+
+#endif
