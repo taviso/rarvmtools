@@ -67,17 +67,17 @@ Operands.
 
 The operand types supported for RarVM are as follows
 
-    * Registers (`r0, r1, ..., r7`)
-    * Memory references (`[#0x12345]`)
-    * Register indirect references (`[r0]`)
-    * Base + Index indirect references (`[r4+#0x1234]`)
-    * Immediates (`#0x12312`)
+ * Registers (`r0, r1, ..., r7`)
+ * Memory references (`[#0x12345]`)
+ * Register indirect references (`[r0]`)
+ * Base + Index indirect references (`[r4+#0x1234]`)
+ * Immediates (`#0x12312`)
 
 And as a convenience to programmers, the assembler also supports symbolic
 references that are resolved to immediates at compile time, simply prefix them
 with $.
 
-    * Symbolic references (`jmp $next_loop`)
+ * Symbolic references (`jmp $next_loop`)
 
 So a trivial demonstration program might help.
 
@@ -115,14 +115,14 @@ Rar programs can either supply their own initial register values, or use the
 default set which includes some system information. If you do not specify your
 own registers, these will be set:
 
-   * r0: zero
-   * r1: zero
-   * r2: zero
-   * r3: Address of Global Memory Buffer
-   * r4: Filter Block Length
-   * r5: Filter Exec Count
-   * r6: zero
-   * r7: End of available memory (and thus the stack grows down on RarVM).
+ * r0: zero
+ * r1: zero
+ * r2: zero
+ * r3: Address of Global Memory Buffer
+ * r4: Filter Block Length
+ * r5: Filter Exec Count
+ * r6: zero
+ * r7: End of available memory (and thus the stack grows down on RarVM).
 
 Flags are always initialised to zero.
 
@@ -166,10 +166,10 @@ Calling conventions.
 I use the following conventions, feel free to ignore them if you prefer
 something hideous like pascal.
 
-    * No registers are saved by callee, except r6 and r7.
-    * The return code is placed in r0.
-    * Parameters are passed cdecl style (reverse order) on the stack.
-    * r6 is used as a frame pointer, and you're required to preserve it.
+ * No registers are saved by callee, except r6 and r7.
+ * The return code is placed in r0.
+ * Parameters are passed cdecl style (reverse order) on the stack.
+ * r6 is used as a frame pointer, and you're required to preserve it.
 
 See the standard library for examples.
 
@@ -185,8 +185,8 @@ Status
 
 This is a list of what currently is believed to work:
 
-    * Basic programs appear to run on the Linux unrar program.
-    * I havn't tested Windows yet, because I'm still porting the CRC tools to RarVM.
+ * Basic programs appear to run on the Linux unrar program.
+ * I havn't tested Windows yet, because I'm still porting the CRC tools to RarVM.
 
 Needless to say, don't pipe untrusted input into this early alpha build ;-)
 
