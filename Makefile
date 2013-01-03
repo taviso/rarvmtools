@@ -1,5 +1,6 @@
 CFLAGS	= -ggdb3 -O0 -march=native -std=gnu99 -Wall
-LDFLAGS	= $(CFLAGS) -lz
+LDFLAGS	= $(CFLAGS)
+LDLIBS = -lz
 RARAS	= ./raras
 RARLD	= ./rarld
 
