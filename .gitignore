@@ -1,0 +1,8 @@
+*.o
+raras
+rarld
+sample.rar
+bitbuffer_test
+test/*.ri
+test/*.ro
+test/*.rar
