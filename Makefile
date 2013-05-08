@@ -1,3 +1,4 @@
+# Add -DNEEDS_STRCHRNUL to end of CFLAGS if necessary
 CFLAGS	= -ggdb3 -O0 -march=native -std=gnu99 -Wall
 LDFLAGS	= $(CFLAGS)
 LDLIBS = -lz
@@ -15,7 +16,7 @@ RARLD	= ./rarld
 
 all:   raras rarld sample.rar test
 rarld: rarld.o bitbuffer.o
-raras: parser.o raras.o bitbuffer.o
+raras: strchrnul.o parser.o raras.o bitbuffer.o
 bitbuffer_test: bitbuffer_test.o bitbuffer.o
 
 test: bitbuffer_test

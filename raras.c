@@ -22,6 +22,8 @@
 #include "bitbuffer.h"
 #include "rar.h"
 
+#include "strchrnul.h"
+
 int main(int argc, char **argv)
 {
     FILE     *input       = NULL;
