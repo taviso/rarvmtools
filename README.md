@@ -1,6 +1,13 @@
 RarVM Toolchain
 ===============================================================================
 
+
+*This code is here mainly for historical reference. Since this code was published,
+WinRAR and other products have deprecated support for RarVM. Many anti-virus
+products still unpack RarVM archives, so perhaps someone will find it useful.*
+
+===============================================================================
+
 This is a basic toolchain for the RarVM, a virtual machine included with the
 popular WinRAR compression suite. Rar includes a VM to support custom data
 transformations to improve data redundancy, and thus improve compression
